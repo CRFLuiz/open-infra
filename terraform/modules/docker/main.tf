@@ -17,33 +17,43 @@ variable "services" {
         name        = string
         context     = string
         dockerfile  = string
-        port        = string
+        appPort     = string
+        extPort     = string
     }))
 }
 
-resource "docker_image" "ubuntu" {
+resource "docker_image" "app" {
     count   = length(var.services)
     name    = "${var.services[count.index].name}:latest"
 
     build {
-        dockerfile  = var.services[count.index].dockerfile
-        path        = var.services[count.index].context
+        dockerfile      = var.services[count.index].dockerfile
+        path            = var.services[count.index].context
+        force_remove    = true
+        # tag             = "${var.services[count.index].name}:latest"
     }
 }
 
-resource "docker_service" "service" {
-    count = length(var.services)
-    name = var.services[count.index].name
+resource "docker_network" "private_network" {
+  name = "my_network"
+}
 
-    task_spec {
-        container_spec {
-            image = "${var.services[count.index].name}:latest"
-        }
+resource "docker_container" "ubuntu" {
+    count       = length(var.services)
+    name        = var.services[count.index].name
+    # image       = "${var.services[count.index].name}:latest"
+    image       = docker_image.app[count.index].latest
+    # domainname  = var.services[count.index].name
+
+    networks_advanced {
+        name    = docker_network.private_network.name
+        aliases = [ var.services[count.index].name ]
     }
 
-  endpoint_spec {
     ports {
-      target_port = var.services[count.index].port
+        internal = var.services[count.index].appPort
+        external = var.services[count.index].extPort
     }
-  }
+
+    depends_on = [ docker_image.app ]
 }
