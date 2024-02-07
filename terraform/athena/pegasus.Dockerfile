@@ -2,4 +2,4 @@ FROM node
 
 WORKDIR /app
 
-ENTRYPOINT yarn && yarn run local
+ENTRYPOINT yarn run local

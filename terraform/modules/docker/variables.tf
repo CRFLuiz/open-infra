@@ -8,3 +8,7 @@ variable "services" {
         extPort     = string
     }))
 }
+
+variable "newrelic_token" {
+    type = string
+}

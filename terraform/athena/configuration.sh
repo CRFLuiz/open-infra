@@ -34,6 +34,7 @@ function updateBranch {
     cd $1
     git checkout local
     git pull
+    yarn
     cd ..
 }
 
@@ -42,9 +43,9 @@ function moveDockerfile {
 }
 
 function main {
-    installGit
-    installTerraform
-    installDocker
+    git --version || installGit
+    terraform --version || installTerraform
+    docker --version || installDocker
 
     APP="pegasus"
     updateBranch $APP
