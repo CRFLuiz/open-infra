@@ -28,11 +28,15 @@ function installDocker {
     $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
     sudo apt-get update
     sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+    sudo groupadd docker
+    sudo usermod -aG docker $USER
+    newgrp docker
 }
 
 function updateBranch {
     cd $1
-    git checkout local
+    env=${2:-'local'}
+    git checkout $env
     git pull
     yarn
     cd ..
@@ -48,7 +52,7 @@ function main {
     docker --version || installDocker
 
     APP="pegasus"
-    updateBranch $APP
+    updateBranch $APP "feature/update-new-relic"
     moveDockerfile $APP
 }
 
