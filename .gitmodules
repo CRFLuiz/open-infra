@@ -1,0 +1,3 @@
+[submodule "terraform/athena/pegasus"]
+	path = terraform/athena/pegasus
+	url = https://github.com/crfluiz/pegasus.git
