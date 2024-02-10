@@ -1,5 +1,6 @@
 module "docker" {
-    source      = "../modules/docker"
-    services    = var.services
-    newrelic_token = var.newrelic_token
+    source          = "../modules/docker"
+    services        = var.services
+    newrelic_token  = var.newrelic_token
+    infrastructure  = var.infrastructure
 }

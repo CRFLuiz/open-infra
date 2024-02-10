@@ -9,6 +9,16 @@ variable "services" {
     }))
 }
 
+variable "infrastructure" {
+    description = ""
+    type        = list(object({
+        name        = string
+        appPort     = string
+        extPort     = string
+        image       = string
+    }))
+}
+
 variable "newrelic_token" {
     type = string
 }

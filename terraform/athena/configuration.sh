@@ -43,7 +43,7 @@ function updateBranch {
 }
 
 function moveDockerfile {
-    cp ${1}.Dockerfile ${1}/Dockerfile
+    cp resources/${1}.Dockerfile ${1}/Dockerfile
 }
 
 function main {

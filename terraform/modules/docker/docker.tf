@@ -43,6 +43,8 @@ resource "docker_volume" "newrelic_volume" {
 }
 
 resource "docker_container" "newrelic" {
+    count = length(var.newrelic_token) != 0 ? 1 : 0
+
     name        = "athena-newrelic"
     image       = "newrelic/infrastructure:latest"
     restart     = "always"
@@ -79,4 +81,73 @@ resource "docker_container" "newrelic" {
 
 
     depends_on = [ docker_image.app ]
+}
+
+# resource "null_resource" "create_volume" {
+#     # for_each = { for i, v in var.infrastructure : i => v }
+#     # count = length(var.infrastructure)
+
+#     # provisioner "local-exec" {
+#     dynamic "local-exec" {
+#         for_each = { for i, v in var.infrastructure : i => v }
+
+#         content {
+#             dynamic "command" {
+#                 for_each = { for lv in local_exec.value.value.localVolumes : lv.name => lv }
+
+#                 content {
+#                     command = "mkdir -p /${command.value.name}-volume"
+#                 }
+#             }
+#         }
+#         # for_each = { for v in each.value.localVolumes : v.name => v }
+#         # count = length(var.infrastructure[count].localVolumes)
+#         # command = "mkdir -p /${each.value.localVolumes[each.key].name}-volume"
+#     }
+# }
+
+
+
+resource "docker_container" "infrastructure" {
+    count       = length(var.infrastructure)
+
+    name        = var.infrastructure[count.index].name
+    image       = var.infrastructure[count.index].image
+    restart     = "always"
+    env         = coalesce(var.infrastructure[count.index].env, []) != [] ? var.infrastructure[count.index].env : null
+
+    networks_advanced {
+        name    = docker_network.network.name
+        aliases = [var.infrastructure[count.index].name]
+    }
+
+    ports {
+        internal = var.infrastructure[count.index].appPort
+        external = var.infrastructure[count.index].extPort
+    }
+
+    dynamic "volumes" {
+        for_each = coalesce(var.infrastructure[count.index].volumes, [])
+        content {
+            container_path  = volumes.container
+            host_path       = volumes.host
+            read_only       = coalesce(volumes.read_only, "") != "" ? volumes.read_only : null
+            # provisioner "local-exec" {
+            #     command = coalesce(volumes.create_dir, false) != true ? null : "mkdir -p ${volumes.host}"
+            # }
+        }
+    }
+}
+
+resource "null_resource" "mkdir" {
+    count       = length(var.infrastructure)
+
+    locals {
+        volumes = coalesce(var.infrastructure[count.index].volumes, [])
+    }
+    
+    provisioner "local-exec" {
+        for_each    = local.volumes
+        command     = "mkdir -p ${each.value.host}"
+    }
 }
